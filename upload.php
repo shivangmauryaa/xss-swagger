@@ -1,41 +1,37 @@
 <?php
-// Check if a file has been uploaded
 if (isset($_FILES['file'])) {
     $file = $_FILES['file'];
-
-    // Set the upload directory (ensure this directory is writable by the web server)
     $uploadDir = 'uploads/';
     
-    // Make sure the uploads directory exists
     if (!file_exists($uploadDir)) {
-        mkdir($uploadDir, 0777, true); // Create uploads directory if not exists
+        if (!mkdir($uploadDir, 0777, true)) {
+            die("Failed to create directory.");
+        }
     }
 
-    // Get file information
     $fileName = basename($file['name']);
     $fileTmpPath = $file['tmp_name'];
     $filePath = $uploadDir . $fileName;
 
-    // Check for upload errors
     if ($file['error'] !== UPLOAD_ERR_OK) {
-        echo "Error uploading file!";
-        exit();
+        die("Error uploading file. Error code: " . $file['error']);
     }
 
-    // Check if the uploaded file is a PHP file (or your preferred type)
+    echo "File type: " . $file['type'] . "<br>";
+    echo "File size: " . $file['size'] . " bytes<br>";
+
     if (strpos($file['type'], 'php') !== false) {
-        // Move the uploaded PHP file to the server's uploads directory
+        echo "Temporary file path: " . $fileTmpPath . "<br>";
+
         if (move_uploaded_file($fileTmpPath, $filePath)) {
             echo "PHP file uploaded successfully!<br>";
-            echo "File location on server: " . realpath($filePath) . "<br>"; // Display the full file path
-
-            // Provide the file URL to access it
+            echo "File location on server: " . realpath($filePath) . "<br>";
             echo "You can access the file at: <a href='/uploads/" . $fileName . "'>http://yourserver.com/uploads/" . $fileName . "</a>";
         } else {
-            echo "File upload failed!";
+            die("Failed to move uploaded file to the destination directory.");
         }
     } else {
-        echo "Please upload a PHP file.";
+        die("Only PHP files are allowed.");
     }
 } else {
     echo "No file uploaded.";
